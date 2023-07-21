@@ -2,6 +2,7 @@ package com.client.SpringCloundConfigClient;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
@@ -22,13 +23,18 @@ class MelitaTaskServiceTest {
     @Autowired
     private MelitaTaskService melitaTaskService;
 
+    @BeforeEach
+    public void clearDb(){
+        melitaTaskService.clearDb();
+    }
+
 
     @Test
     void test_createCustomer() throws JsonProcessingException {
-        final Customer customer = new Customer(123, "name", "surname", 29, 77123456, "Some Street");
+        final Customer customer = new Customer(0, "name", "surname", 29, 77123456, "Some Street");
         melitaTaskService.addCustomer(customer);
 
-        Assertions.assertThat(melitaTaskService.getCustomer("123"))
+        Assertions.assertThat(melitaTaskService.getCustomer("0"))
                 .isNotNull()
                 .isEqualTo(customer);
 
@@ -36,15 +42,28 @@ class MelitaTaskServiceTest {
 
     @Test
     void test_attachProduct() throws JsonProcessingException {
-        final Customer customer = new Customer(123, "name", "surname", 29, 77123456, "Some Street");
+        final Customer customer = new Customer(0, "name", "surname", 29, 77123456, "Some Street");
+        final Package aPackage = new Package("package1", "some address", 2L);
         melitaTaskService.addCustomer(customer);
 
-        melitaTaskService.attachProduct("123", "package1", "some address");
+        melitaTaskService.attachProduct("0", "package1", "some address");
 
-        Assertions.assertThat(melitaTaskService.getCustomer("123").getCustomerPackage())
-                .isEqualTo(new Package("package1", "some address", 2L));
+        Assertions.assertThat(melitaTaskService.getCustomer("0").getCustomerPackage()).satisfies(customerPackage -> {
+                    Assertions.assertThat(customerPackage.getMobilePackage()).isEqualTo(aPackage.getMobilePackage());
+                    Assertions.assertThat(customerPackage.getInternetPackage()).isEqualTo(aPackage.getInternetPackage());
+                    Assertions.assertThat(customerPackage.getTelevisionPackage()).isEqualTo(aPackage.getTelevisionPackage());
+                    Assertions.assertThat(customerPackage.getTelephonyPackage()).isEqualTo(aPackage.getTelephonyPackage());
+                    Assertions.assertThat(customerPackage.getInstallationDetails()).satisfies(installationDetails ->
+                            Assertions.assertThat(installationDetails.getInstallationAddress())
+                                    .isEqualTo(aPackage.getInstallationDetails().getInstallationAddress()));
+                });
 
         Mockito.verify(rabbitSender, Mockito.times(1)).sendMessage(any());
+    }
+
+    @Test
+    void test_getCustomerWIthInvalidId() {
+        Assertions.assertThatThrownBy(() -> melitaTaskService.getCustomer("99")).isInstanceOf(IllegalStateException.class);
     }
 
 }

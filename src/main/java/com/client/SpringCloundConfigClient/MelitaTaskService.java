@@ -32,18 +32,22 @@ public class MelitaTaskService {
     }
 
     public Customer getCustomer(final String customerId) {
-        try{
-            return customerDb.get(Integer.parseInt(customerId));
-        } catch (final NullPointerException npe){
-            log.error("I FAILED");
-            throw npe;
+        Customer customer = customerDb.get(Integer.parseInt(customerId));
+        if(customer == null) {
+            log.error("Customer not found in DB!");
+            throw new IllegalStateException("Customer not found");
         }
+        return customer;
     }
 
     public void attachProduct(final String customerId, final String customerPackageId, final String address) throws JsonProcessingException {
         final Package customerPackage = new Package(customerPackageId, address, timeSlotConfig.getDaysInFuture());
         getCustomer(customerId).attachPackage(customerPackage);
         rabbitSender.sendMessage(new NewOrderEvent(customerId, customerPackage));
+    }
+
+    public void clearDb(){
+        customerDb.clear();
     }
 
 }
