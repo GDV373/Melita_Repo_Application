@@ -1,5 +1,6 @@
 package com.client.SpringCloundConfigClient;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -15,6 +16,9 @@ public class MelitaTaskService {
 
     @Autowired
     private TimeSlotConfig timeSlotConfig;
+
+    @Autowired
+    private RabbitSender rabbitSender;
 
     public Integer addCustomer(final Customer customer){
         final Customer newCustomer = new Customer(customerDb.values().size(),
@@ -36,8 +40,10 @@ public class MelitaTaskService {
         }
     }
 
-    public void attachProduct(final String customerId, final String customerPackage, final String address){
-        getCustomer(customerId).attachPackage(new Package(customerPackage, address, timeSlotConfig.getDaysInFuture()));
+    public void attachProduct(final String customerId, final String customerPackageId, final String address) throws JsonProcessingException {
+        final Package customerPackage = new Package(customerPackageId, address, timeSlotConfig.getDaysInFuture());
+        getCustomer(customerId).attachPackage(customerPackage);
+        rabbitSender.sendMessage(new NewOrderEvent(customerId, customerPackage));
     }
 
 }
