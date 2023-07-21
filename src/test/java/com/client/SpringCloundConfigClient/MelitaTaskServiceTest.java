@@ -30,7 +30,7 @@ class MelitaTaskServiceTest {
 
 
     @Test
-    void test_createCustomer() throws JsonProcessingException {
+    void test_createCustomer() {
         final Customer customer = new Customer(0, "name", "surname", 29, 77123456, "Some Street");
         melitaTaskService.addCustomer(customer);
 
