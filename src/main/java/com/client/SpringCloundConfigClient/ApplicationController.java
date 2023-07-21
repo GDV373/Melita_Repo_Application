@@ -1,5 +1,6 @@
 package com.client.SpringCloundConfigClient;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,7 +21,7 @@ public class ApplicationController {
     }
 
     @PostMapping("/{customerId}/{packageName}")
-    public void attachProduct(@PathVariable(name = "customerId") final String customerId, @PathVariable(name = "packageName") final String customerPackage, @RequestBody final String address){
+    public void attachProduct(@PathVariable(name = "customerId") final String customerId, @PathVariable(name = "packageName") final String customerPackage, @RequestBody final String address) throws JsonProcessingException {
          melitaTaskService.attachProduct(customerId, customerPackage, address);
     }
 

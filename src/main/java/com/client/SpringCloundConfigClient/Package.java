@@ -4,10 +4,13 @@ import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Setter;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Data
-public class Package {
+public class Package implements Serializable {
+
+    private static final long serialVersionUID = -2293083728597696066L;
 
     enum Telephony {
         BASIC_TELEPHONY,
@@ -42,7 +45,7 @@ public class Package {
     private InstallationDetails installationDetails;
 
     public Package(final String packageName, final String address, final Long daysInFuture){
-        this.installationDetails = new InstallationDetails(LocalDateTime.now().plusDays(daysInFuture), address);
+        this.installationDetails = new InstallationDetails(LocalDateTime.now().plusDays(daysInFuture).toString(), address);
         if(packageName.equals("package1")) {
             this.telephonyPackage = Telephony.UNLIMITED_TELEPHONY;
             this.internetPackage = Internet.GIGABIT_INTERNET;
